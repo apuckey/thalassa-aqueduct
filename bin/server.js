@@ -3,7 +3,7 @@ var Aqueduct = require('..')
   , Hapi = require('hapi')
   , shoe = require('shoe')
   , util = require('util')
-  , winston = require('winston')
+  , logger = require('./log.js')
   ;
 
 // require('nodetime').profile({
@@ -80,11 +80,7 @@ if (argv.h) {
   optimist.showHelp();
   process.exit(0);
 }
-var logger = new (winston.Logger)({
-  transports: [
-    new (winston.transports.File)({ filename: argv.logFile, json: false })
-  ]
-});
+var log = logger.log;
 var aqueduct = new Aqueduct(argv);
 var server = new Hapi.Server();
 
@@ -119,22 +115,22 @@ sock.on('connection', function (stream) {
 });
 
 sock.on('log', function (severity, msg) {
-  logger.log(severity, msg);
+  log(severity, msg);
 })
 
 server.start(function () {
-  logger.log('info', util.format("Thalassa Aqueduct listening on %s:%s", argv.host, argv.port));
+  log('info', util.format("Thalassa Aqueduct listening on %s:%s", argv.host, argv.port));
 });
 
-aqueduct.haproxyManager.on('configChanged', function() { logger.log('debug', 'Config changed') });
-aqueduct.data.stats.on('changes', function (it) { logger.log('debug', it.state.id, it.state.status )})
+aqueduct.haproxyManager.on('configChanged', function() { log('debug', 'Config changed') });
+aqueduct.data.stats.on('changes', function (it) { log('debug', it.state.id, it.state.status )})
 
 // var memwatch = require('memwatch');
-// memwatch.on('leak', function(info) { logger.log('debug', 'leak', info); });
-// memwatch.on('stats', function(stats) { logger.log('debug', 'stats', stats); });
+// memwatch.on('leak', function(info) { log('debug', 'leak', info); });
+// memwatch.on('stats', function(stats) { log('debug', 'stats', stats); });
 // var hd = new memwatch.HeapDiff();
 
 // setInterval(function () {
-//   logger.log('debug', 'diff', hd.end().after.size);
+//   log('debug', 'diff', hd.end().after.size);
 //   hd = new memwatch.HeapDiff();
 // }, 10000);
