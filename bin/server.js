@@ -3,6 +3,7 @@ var Aqueduct = require('..')
   , Hapi = require('hapi')
   , shoe = require('shoe')
   , util = require('util')
+  , winston = require('winston')
   ;
 
 // require('nodetime').profile({
@@ -79,15 +80,18 @@ if (argv.h) {
   optimist.showHelp();
   process.exit(0);
 }
-var log = new (winston.Logger)({
+var logger = new (winston.Logger)({
   transports: [
-    new (winston.transports.File)({ filename: argv.logFile })
+    new (winston.transports.File)({ filename: argv.logFile, json: false })
   ]
 });
 var aqueduct = new Aqueduct(argv);
 var server = new Hapi.Server();
 
-server.connection({ port: argv.port })
+server.connection({
+  port: argv.port,
+  host: argv.host
+});
 server.route(aqueduct.apiRoutes());
 
 // anything at the top level goes to index.html
@@ -115,23 +119,23 @@ sock.on('connection', function (stream) {
 });
 
 sock.on('log', function (severity, msg) {
-  log(severity, msg);
+  logger.log(severity, msg);
 })
 
 server.start(function () {
-  log('info', util.format("Thalassa Aqueduct listening on %s:%s", argv.host, argv.port));
+  logger.log('info', util.format("Thalassa Aqueduct listening on %s:%s", argv.host, argv.port));
 });
 
-aqueduct.haproxyManager.on('configChanged', function() { log('debug', 'Config changed') });
-aqueduct.haproxyManager.on('reloaded', function() { log('debug', 'Haproxy reloaded') });
-aqueduct.data.stats.on('changes', function (it) { log('debug', it.state.id, it.state.status )})
+aqueduct.haproxyManager.on('configChanged', function() { logger.log('debug', 'Config changed') });
+aqueduct.haproxyManager.on('reloaded', function() { logger.log('debug', 'Haproxy reloaded') });
+aqueduct.data.stats.on('changes', function (it) { logger.log('debug', it.state.id, it.state.status )})
 
 // var memwatch = require('memwatch');
-// memwatch.on('leak', function(info) { log('debug', 'leak', info); });
-// memwatch.on('stats', function(stats) { log('debug', 'stats', stats); });
+// memwatch.on('leak', function(info) { logger.log('debug', 'leak', info); });
+// memwatch.on('stats', function(stats) { logger.log('debug', 'stats', stats); });
 // var hd = new memwatch.HeapDiff();
 
 // setInterval(function () {
-//   log('debug', 'diff', hd.end().after.size);
+//   logger.log('debug', 'diff', hd.end().after.size);
 //   hd = new memwatch.HeapDiff();
 // }, 10000);
