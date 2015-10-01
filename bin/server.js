@@ -127,7 +127,6 @@ server.start(function () {
 });
 
 aqueduct.haproxyManager.on('configChanged', function() { logger.log('debug', 'Config changed') });
-aqueduct.haproxyManager.on('reloaded', function() { logger.log('debug', 'Haproxy reloaded') });
 aqueduct.data.stats.on('changes', function (it) { logger.log('debug', it.state.id, it.state.status )})
 
 // var memwatch = require('memwatch');
