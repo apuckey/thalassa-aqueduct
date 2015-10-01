@@ -6,7 +6,7 @@ var Aqueduct = require('..')
   ;
 
 // require('nodetime').profile({
-//     accountKey: '1765a180c09b73ea0a7d7262ff6dc60d776bf395', 
+//     accountKey: '1765a180c09b73ea0a7d7262ff6dc60d776bf395',
 //     appName: 'Aqueuct'
 //   });
 
@@ -61,6 +61,10 @@ var optimist = require('optimist')
               sudo: {
                 describe: 'use sudo when starting haproxy'
               },
+              logFile: {
+                default : __dirname + '/../application.log',
+                describe: 'log file path'
+              },
               debug: {
                 boolean: true,
                 describe: 'enabled debug logging'
@@ -75,13 +79,15 @@ if (argv.h) {
   optimist.showHelp();
   process.exit(0);
 }
-
-var log = argv.log = require('../lib/defaultLogger')( (argv.debug == true) ? 'debug' : 'error' );
-var aqueduct = new Aqueduct(argv);
-var server = new Hapi.Server({
-	port: argv.port,
-	host: argv.host
+var log = new (winston.Logger)({
+  transports: [
+    new (winston.transports.File)({ filename: argv.logFile })
+  ]
 });
+var aqueduct = new Aqueduct(argv);
+var server = new Hapi.Server();
+
+server.connection({ port: argv.port })
 server.route(aqueduct.apiRoutes());
 
 // anything at the top level goes to index.html
@@ -129,4 +135,3 @@ aqueduct.data.stats.on('changes', function (it) { log('debug', it.state.id, it.s
 //   log('debug', 'diff', hd.end().after.size);
 //   hd = new memwatch.HeapDiff();
 // }, 10000);
-

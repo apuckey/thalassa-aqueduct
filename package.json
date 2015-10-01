@@ -52,7 +52,8 @@
     "browserify": "~2.25.1",
     "CBuffer": "~0.1.4",
     "joi": "^5.0.2",
-    "boom": "^2.6.1"
+    "boom": "^2.6.1",
+    "winston": "~1.0.2"
   },
   "devDependencies": {
     "jshint": "~2.1.4",
